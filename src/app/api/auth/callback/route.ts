@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { prisma } from "@/lib/db/client";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -8,8 +9,28 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+    if (!error && data.user) {
+      const { user } = data;
+
+      await prisma.user.upsert({
+        where: { id: user.id },
+        create: {
+          id: user.id,
+          email: user.email!,
+          username: user.user_metadata?.user_name ?? null,
+          displayName: user.user_metadata?.full_name ?? null,
+          avatarUrl: user.user_metadata?.avatar_url ?? null,
+        },
+        update: {
+          email: user.email!,
+          username: user.user_metadata?.user_name ?? null,
+          displayName: user.user_metadata?.full_name ?? null,
+          avatarUrl: user.user_metadata?.avatar_url ?? null,
+        },
+      });
+
       return NextResponse.redirect(`${origin}${next}`);
     }
   }

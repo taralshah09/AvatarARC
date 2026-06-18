@@ -11,7 +11,11 @@ plan/
 out/
 
 # Node
-node_modules/
+node_modules
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
 
 # Vercel
 .vercel
@@ -19,3 +23,8 @@ node_modules/
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# Agents
+AGENTS.md
+CLAUDE.md
+.claude
