@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  username      String?  @unique
+  displayName   String?
+  avatarUrl     String?
+  avatarConfig  Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  connectedProviders ConnectedProvider[]
+  signals            Signal[]
+  score              Score?
+  scoreHistory       ScoreHistory[]
+
+  @@map("users")
+}
+
+model ConnectedProvider {
+  id             String    @id @default(cuid())
+  userId         String
+  provider       String
+  providerUserId String
+  accessToken    String?
+  refreshToken   String?
+  tokenExpiresAt DateTime?
+  scopes         String[]
+  connectedAt    DateTime  @default(now())
+  lastSyncedAt   DateTime?
+  syncStatus     String    @default("idle")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
+  @@map("connected_providers")
+}
+
+model Signal {
+  id          String   @id @default(cuid())
+  userId      String
+  source      String
+  metric      String
+  value       Float
+  unit        String
+  periodStart DateTime?
+  periodEnd   DateTime?
+  recordedAt  DateTime  @default(now())
+  rawPayload  Json?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, source, metric, recordedAt])
+  @@map("signals")
+}
+
+model Score {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  vitality      Float?
+  discipline    Float?
+  logic         Float?
+  strategy      Float?
+  craft         Float?
+  grit          Float?
+  overall       Float?
+  archetype     String?
+  axesPopulated Int      @default(0)
+  calculatedAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("scores")
+}
+
+model ScoreHistory {
+  id             String   @id @default(cuid())
+  userId         String
+  scoresSnapshot Json
+  recordedAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("score_history")
+}

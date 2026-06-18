@@ -1,0 +1,21 @@
+# planning (not source code)
+PLAN.md
+plan/
+
+# env
+.env.local
+.env*.local
+
+# Next.js
+.next/
+out/
+
+# Node
+node_modules/
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
