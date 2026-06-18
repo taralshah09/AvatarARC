@@ -1,17 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/db/client";
 import { decrypt } from "@/lib/utils/encryption";
 import { adapterRegistry } from "@/lib/adapters/registry";
 import { writeSignals } from "@/lib/db/signals";
+import { calculateScores, persistScores } from "@/lib/scoring";
 
 export async function POST(req: NextRequest) {
-  const auth = req.headers.get("authorization");
-  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const isCron = req.headers.get("authorization") === `Bearer ${process.env.CRON_SECRET}`;
+
+  let userIdFilter: string | undefined;
+
+  if (!isCron) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    userIdFilter = user.id;
   }
 
   const connections = await prisma.connectedProvider.findMany({
-    where: { syncStatus: { not: "syncing" } },
+    where: {
+      syncStatus: { not: "syncing" },
+      ...(userIdFilter ? { userId: userIdFilter } : {}),
+    },
   });
 
   const results: Array<{ userId: string; provider: string; status: string }> = [];
@@ -47,6 +60,17 @@ export async function POST(req: NextRequest) {
       });
       console.error(`Cron sync failed ${conn.provider} for ${conn.userId}:`, err);
       results.push({ userId: conn.userId, provider: conn.provider, status: "error" });
+    }
+  }
+
+  // Recalculate scores for all affected users
+  const affectedUserIds = [...new Set(connections.map((c) => c.userId))];
+  for (const uid of affectedUserIds) {
+    try {
+      const scoreResult = await calculateScores(uid);
+      await persistScores(uid, scoreResult);
+    } catch (err) {
+      console.error(`Score recalculation failed for ${uid}:`, err);
     }
   }
 

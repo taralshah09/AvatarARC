@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db/client";
 import { decrypt } from "@/lib/utils/encryption";
 import { adapterRegistry } from "@/lib/adapters/registry";
 import { writeSignals } from "@/lib/db/signals";
+import { calculateScores, persistScores } from "@/lib/scoring";
 
 function isValidCronRequest(req: NextRequest): boolean {
   const auth = req.headers.get("authorization");
@@ -56,6 +57,10 @@ export async function POST(
 
     const signals = await adapter.fetchSignals(userId, accessToken);
     await writeSignals(signals);
+
+    // Auto-recalculate scores after new signals are written
+    const scoreResult = await calculateScores(userId);
+    await persistScores(userId, scoreResult);
 
     await prisma.connectedProvider.update({
       where: { userId_provider: { userId, provider } },

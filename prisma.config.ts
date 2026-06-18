@@ -9,7 +9,6 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    // DIRECT_URL: port 5432 (direct, not pooler) — required for Prisma migrate
     url: process.env.DIRECT_URL!,
   },
 });
