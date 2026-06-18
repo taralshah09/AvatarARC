@@ -7,6 +7,8 @@ import { ConnectionsPanel } from "@/components/dashboard/ConnectionsPanel";
 import { SyncButton } from "@/components/dashboard/SyncButton";
 import { PlayerCard } from "@/components/card/PlayerCard";
 import { ShareButton } from "@/components/card/ShareButton";
+import { NavAvatarDrawer } from "@/components/avatar/NavAvatarDrawer";
+import type { AvatarConfig2D } from "@/components/avatar/Avatar2D";
 import type { ScoreResult } from "@/lib/scoring";
 
 export default async function DashboardPage() {
@@ -39,7 +41,6 @@ export default async function DashboardPage() {
     }),
   ]);
 
-  // Serialize dates for client components
   const serializedConnections = connections.map((c) => ({
     ...c,
     lastSyncedAt: c.lastSyncedAt?.toISOString() ?? null,
@@ -48,6 +49,12 @@ export default async function DashboardPage() {
 
   const score = dbUser?.score;
   const username = dbUser?.username ?? user.user_metadata?.user_name ?? null;
+
+  const avatarConfig =
+    dbUser?.avatarConfig &&
+    (dbUser.avatarConfig as Record<string, unknown>).type === '2d'
+      ? (dbUser.avatarConfig as unknown as AvatarConfig2D)
+      : undefined;
 
   let scoreResult: ScoreResult | null = null;
   if (score) {
@@ -84,7 +91,8 @@ export default async function DashboardPage() {
             )}
           </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          <NavAvatarDrawer initialConfig={avatarConfig} seed={username ?? undefined} />
           <span className="text-zinc-400 text-sm">{displayName}</span>
           <SignOutButton />
         </div>
@@ -99,7 +107,6 @@ export default async function DashboardPage() {
             </p>
           </div>
 
-          {/* Player Card Section */}
           {scoreResult && username ? (
             <section>
               <div className="flex items-center justify-between mb-4">
@@ -117,6 +124,7 @@ export default async function DashboardPage() {
                     username,
                     displayName: dbUser?.displayName,
                     avatarUrl: dbUser?.avatarUrl,
+                    avatarConfig: dbUser?.avatarConfig,
                   }}
                   scores={scoreResult}
                   sourcesConnected={connections.length}

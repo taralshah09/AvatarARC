@@ -4,12 +4,15 @@ import React, { forwardRef } from 'react';
 import { motion } from 'framer-motion';
 import { RadarHexagon } from './RadarHexagon';
 import { THEMES, getThemeName } from './CardThemes';
+import { Avatar2D } from '@/components/avatar/Avatar2D';
+import type { AvatarConfig2D } from '@/components/avatar/Avatar2D';
 import type { ScoreResult } from '@/lib/scoring';
 
 interface PlayerCardUser {
   username: string;
   displayName?: string | null;
   avatarUrl?: string | null;
+  avatarConfig?: unknown;
 }
 
 interface PlayerCardProps {
@@ -77,16 +80,25 @@ export const PlayerCard = forwardRef<HTMLDivElement, PlayerCardProps>(
             </span>
           </div>
 
-          {/* Avatar placeholder */}
-          <div
-            className="w-24 h-24 rounded-full flex items-center justify-center text-3xl font-black border-2 select-none"
-            style={{
-              background: `${theme.accent}18`,
-              borderColor: `${theme.accent}70`,
-              color: theme.accent,
-            }}
-          >
-            {displayName.substring(0, 2).toUpperCase()}
+          {/* Avatar */}
+          <div className="rounded-xl overflow-hidden" style={{ border: `2px solid ${theme.accent}70` }}>
+            {user.avatarConfig && (user.avatarConfig as Record<string, unknown>).type === '2d' ? (
+              <Avatar2D
+                config={user.avatarConfig as AvatarConfig2D}
+                size={96}
+                seed={user.username}
+              />
+            ) : (
+              <div
+                className="w-24 h-32 flex items-center justify-center text-3xl font-black select-none"
+                style={{
+                  background: `${theme.accent}18`,
+                  color: theme.accent,
+                }}
+              >
+                {displayName.substring(0, 2).toUpperCase()}
+              </div>
+            )}
           </div>
 
           {/* Name + OVR */}

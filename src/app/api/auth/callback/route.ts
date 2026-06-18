@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     if (!error && data.user) {
       const { user } = data;
 
-      await prisma.user.upsert({
+      const dbUser = await prisma.user.upsert({
         where: { id: user.id },
         create: {
           id: user.id,
@@ -29,9 +29,15 @@ export async function GET(request: Request) {
           displayName: user.user_metadata?.full_name ?? null,
           avatarUrl: user.user_metadata?.avatar_url ?? null,
         },
+        select: { avatarConfig: true },
       });
 
-      return NextResponse.redirect(`${origin}${next}`);
+      // New users (no avatar yet) go to avatar onboarding, unless a specific `next` was requested
+      const destination = !dbUser.avatarConfig && next === '/dashboard'
+        ? '/onboarding/avatar'
+        : next;
+
+      return NextResponse.redirect(`${origin}${destination}`);
     }
   }
 
