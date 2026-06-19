@@ -12,9 +12,10 @@ model User {
   username      String?  @unique
   displayName   String?
   avatarUrl     String?
-  avatarConfig  Json?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  avatarConfig       Json?
+  onboardingComplete Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   connectedProviders ConnectedProvider[]
   signals            Signal[]

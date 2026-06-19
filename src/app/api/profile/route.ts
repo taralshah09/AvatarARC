@@ -30,6 +30,27 @@ function isValidAvatarConfig(v: unknown): v is AvatarConfig2D {
   );
 }
 
+export async function GET() {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { id: true, username: true, displayName: true, avatarUrl: true, avatarConfig: true },
+    });
+    if (!dbUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+    return NextResponse.json(dbUser);
+  } catch (e) {
+    console.error('GET /api/profile error:', e);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
 export async function PUT(request: Request) {
   try {
     const supabase = await createClient();

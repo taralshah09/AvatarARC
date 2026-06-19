@@ -50,6 +50,7 @@ export const PlayerCard = forwardRef<HTMLDivElement, PlayerCardProps>(
 
     const card = (
       <div
+        ref={ref}
         className={`relative w-[360px] rounded-2xl overflow-hidden border-2 ${theme.borderClass}`}
         style={{ background: theme.bg }}
       >
@@ -165,7 +166,6 @@ export const PlayerCard = forwardRef<HTMLDivElement, PlayerCardProps>(
     if (interactive) {
       return (
         <motion.div
-          ref={ref}
           whileHover={{ scale: 1.02 }}
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
         >
@@ -174,7 +174,7 @@ export const PlayerCard = forwardRef<HTMLDivElement, PlayerCardProps>(
       );
     }
 
-    return <div ref={ref}>{card}</div>;
+    return <>{card}</>;
   }
 );
 

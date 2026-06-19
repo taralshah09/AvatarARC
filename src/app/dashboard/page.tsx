@@ -5,9 +5,9 @@ import { prisma } from "@/lib/db/client";
 import { SignOutButton } from "@/components/layout/SignOutButton";
 import { ConnectionsPanel } from "@/components/dashboard/ConnectionsPanel";
 import { SyncButton } from "@/components/dashboard/SyncButton";
-import { PlayerCard } from "@/components/card/PlayerCard";
-import { ShareButton } from "@/components/card/ShareButton";
+import { DashboardCardSection } from "@/components/dashboard/DashboardCardSection";
 import { NavAvatarDrawer } from "@/components/avatar/NavAvatarDrawer";
+import { EvolutionChart } from "@/components/dashboard/EvolutionChart";
 import type { AvatarConfig2D } from "@/components/avatar/Avatar2D";
 import type { ScoreResult } from "@/lib/scoring";
 
@@ -19,6 +19,15 @@ export default async function DashboardPage() {
 
   if (!user) {
     redirect("/");
+  }
+
+  // Check onboarding before anything else (lightweight query)
+  const onboardingCheck = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { onboardingComplete: true },
+  });
+  if (!onboardingCheck?.onboardingComplete) {
+    redirect("/onboarding");
   }
 
   const displayName =
@@ -89,6 +98,14 @@ export default async function DashboardPage() {
                 My Card
               </Link>
             )}
+            <Link href="/leaderboard" className="text-zinc-400 hover:text-white transition-colors">
+              Leaderboard
+            </Link>
+            {username && (
+              <Link href={`/compare?a=${username}`} className="text-zinc-400 hover:text-white transition-colors">
+                Compare
+              </Link>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -108,30 +125,17 @@ export default async function DashboardPage() {
           </div>
 
           {scoreResult && username ? (
-            <section>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">
-                  Your Card
-                </h2>
-                <div className="flex items-center gap-2">
-                  <SyncButton />
-                  {cardUrl && <ShareButton url={`${process.env.NEXT_PUBLIC_APP_URL ?? ''}${cardUrl}`} />}
-                </div>
-              </div>
-              <div className="flex justify-start">
-                <PlayerCard
-                  user={{
-                    username,
-                    displayName: dbUser?.displayName,
-                    avatarUrl: dbUser?.avatarUrl,
-                    avatarConfig: dbUser?.avatarConfig,
-                  }}
-                  scores={scoreResult}
-                  sourcesConnected={connections.length}
-                  interactive
-                />
-              </div>
-            </section>
+            <DashboardCardSection
+              user={{
+                username,
+                displayName: dbUser?.displayName,
+                avatarUrl: dbUser?.avatarUrl,
+                avatarConfig: dbUser?.avatarConfig,
+              }}
+              scores={scoreResult}
+              sourcesConnected={connections.length}
+              shareUrl={`${process.env.NEXT_PUBLIC_APP_URL ?? ''}${cardUrl}`}
+            />
           ) : (
             <section className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
               <div className="flex items-center justify-between mb-2">
@@ -143,6 +147,15 @@ export default async function DashboardPage() {
               <p className="text-zinc-500 text-sm">
                 Connect a platform and sync to generate your player card.
               </p>
+            </section>
+          )}
+
+          {scoreResult && (
+            <section className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+              <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-4">
+                Score Evolution
+              </h2>
+              <EvolutionChart />
             </section>
           )}
 

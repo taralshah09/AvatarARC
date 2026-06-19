@@ -8,8 +8,8 @@ export function OnboardingAvatarBuilder() {
 
   return (
     <AvatarBuilder2D
-      ctaLabel="Save & Go to Dashboard"
-      onSave={() => router.push('/dashboard')}
+      ctaLabel="Save & Continue"
+      onSave={() => router.push('/onboarding/card')}
     />
   );
 }
