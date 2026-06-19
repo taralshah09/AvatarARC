@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { PlayerCard } from '@/components/card/PlayerCard';
@@ -63,7 +63,7 @@ function DeltaBadge({ delta }: { delta: number | null }) {
   );
 }
 
-export default function ComparePage() {
+function CompareContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -220,5 +220,13 @@ export default function ComparePage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function ComparePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center text-zinc-500">Loading…</div>}>
+      <CompareContent />
+    </Suspense>
   );
 }
