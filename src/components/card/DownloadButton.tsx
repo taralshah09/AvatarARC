@@ -14,25 +14,15 @@ export function DownloadButton({ cardRef, username }: DownloadButtonProps) {
     if (!cardRef.current) return;
     setDownloading(true);
     try {
-      const html2canvas = (await import('html2canvas')).default;
-      const canvas = await html2canvas(cardRef.current, {
-        scale: 2,
-        backgroundColor: null,
-        useCORS: true,
-        logging: false,
+      const { toPng } = await import('html-to-image');
+      const dataUrl = await toPng(cardRef.current, {
+        pixelRatio: 2,
+        cacheBust: true,
       });
-      const blob = await new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob((b) => {
-          if (b) resolve(b);
-          else reject(new Error('Canvas toBlob failed'));
-        }, 'image/png');
-      });
-      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
+      a.href = dataUrl;
       a.download = `avatararc-${username}.png`;
       a.click();
-      URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Card download failed:', err);
     } finally {

@@ -1,8 +1,6 @@
 import { ImageResponse } from 'next/og';
 import { prisma } from '@/lib/db';
 
-export const runtime = 'edge';
-
 function themeColors(ovr: number | null) {
   const s = ovr ?? 0;
   if (s >= 85) return { bg: '#1a1408', accent: '#f59e0b', text: '#fef3c7' };

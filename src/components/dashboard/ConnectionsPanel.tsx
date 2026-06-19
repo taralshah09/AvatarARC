@@ -17,6 +17,7 @@ const PROVIDERS = [
   { id: "chess_com", label: "Chess.com" },
   { id: "strava", label: "Strava" },
   { id: "codeforces", label: "Codeforces" },
+  { id: "google_fit", label: "Google Fit" },
 ];
 
 interface ConnectionsPanelProps {
